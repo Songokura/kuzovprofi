@@ -1,4 +1,4 @@
-/* KUZOV PROFI - кузовной центр, Алматы. Концепция «Отметка мастера». */
+/* KUZOV PROFI - кузовной центр, Алматы. */
 :root{
   --ink:#15181C;--ink2:#1F2328;--ink3:#0F1114;--line:rgba(255,255,255,.1);
   --yellow:#F5B800;--yellow2:#FFC72C;--chrome:#E9EDF1;--steel:#8C949C;--steel2:#B3BAC2;
@@ -6,6 +6,7 @@
   --fd:"Montserrat","Segoe UI",Arial,sans-serif;--ft:"Golos Text","Segoe UI",Arial,sans-serif;
   --hh:72px;--wrap:1240px;--gut:24px;--r:4px;--r2:8px;--barh:56px;
   --enter:1;--exit:0;--stay:0;
+  --eo:cubic-bezier(.23,1,.32,1);--eio:cubic-bezier(.77,0,.175,1);
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:auto;-webkit-text-size-adjust:100%;overflow-x:clip;background:var(--ink)}
@@ -30,15 +31,15 @@ h2 em,h1 em{font-style:normal;color:var(--yellow)}
 .head .lead{max-width:840px}
 
 /* Кнопки */
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;height:54px;padding:0 24px;border:0;border-radius:var(--r);font:500 15px/1 var(--ft);text-decoration:none;cursor:pointer;white-space:nowrap;transition:background .25s,border-color .25s,transform .25s,color .25s}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;height:54px;padding:0 24px;border:0;border-radius:var(--r);font:500 15px/1 var(--ft);text-decoration:none;cursor:pointer;white-space:nowrap;transition:background .25s,border-color .25s,color .25s,transform .16s var(--eo)}
 .btn svg{flex:0 0 auto;width:18px;height:18px}
 .btn-y{background:var(--yellow);color:var(--ink)}
 .btn-ghost{background:transparent;color:var(--chrome);border:1px solid rgba(255,255,255,.38)}
-.btn:active{transform:scale(.98)}
 @media (hover:hover) and (pointer:fine){
   .btn-y:hover{background:var(--yellow2);transform:translateY(-1px)}
   .btn-ghost:hover{border-color:var(--chrome);transform:translateY(-1px)}
 }
+.btn:active{transform:scale(.97)}
 .btn:focus-visible,a:focus-visible,button:focus-visible{outline:2px solid var(--yellow);outline-offset:3px}
 .btns{display:flex;flex-wrap:wrap;gap:14px;margin-top:30px}
 
@@ -89,25 +90,33 @@ body.menu-open .burger span:nth-child(3){top:21px;transform:rotate(-45deg)}
 }
 
 /* Плиты */
-.pw{position:relative;height:100svh;--draw:clamp(0,(var(--enter) - .42)/.38,1);--wipe:clamp(0,(var(--enter) - .86)/.14,1)}
-.pw-hero{height:175svh;--draw:var(--hd,0);--wipe:var(--hw,0)}
+.pw{position:relative;height:100svh}
+.pw-hero{height:175svh}
 .plate{position:sticky;top:0;height:100svh;overflow:hidden;background:var(--ink);color:var(--chrome);transform:scale(calc(1 - .07*var(--exit)));transform-origin:50% 42%;border-radius:calc(30px*(1 - var(--enter))) calc(30px*(1 - var(--enter))) 0 0}
 .plate::after{content:"";position:absolute;inset:0;background:#000;opacity:calc(.78*var(--exit));pointer-events:none;z-index:9}
 .pw.gone .plate{visibility:hidden}
-.plate .txt>*{opacity:0;transform:translateY(22px);transition:opacity .7s cubic-bezier(.2,.7,.2,1),transform .7s cubic-bezier(.2,.7,.2,1)}
-.pw.on .plate .txt>*{opacity:1;transform:none}
-.plate .txt>*:nth-child(2){transition-delay:.06s}.plate .txt>*:nth-child(3){transition-delay:.12s}.plate .txt>*:nth-child(4){transition-delay:.18s}.plate .txt>*:nth-child(5){transition-delay:.24s}.plate .txt>*:nth-child(6){transition-delay:.3s}
 
-/* Обводка мелком */
-.mark{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible}
-.chalk path{fill:none;stroke:var(--yellow);stroke-width:7;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:100px 100px;stroke-dashoffset:calc((100*(1 - var(--draw)) - 100*var(--wipe))*1px);opacity:.95}
-.chalk path.c2{stroke-width:3;opacity:.45;transform:translate(6px,5px)}
-.hero .chalk path{stroke-width:6}
-.ph-v .chalk path{stroke-width:5}
-@media (hover:hover) and (min-width:761px){.hero .chalk,.svc .mark .chalk{filter:url(#chalk)}}
-.tag{position:absolute;left:var(--tx,50%);top:var(--ty,50%);z-index:3;transform:translate(-50%,-50%);display:inline-flex;align-items:center;gap:8px;pointer-events:none;opacity:calc(clamp(0,(var(--draw) - .7)/.3,1)*(1 - var(--wipe)))}
-.tag i{width:22px;height:2px;background:var(--yellow);border-radius:2px}
-.tag b{font:500 11px/1 var(--ft);letter-spacing:.1em;text-transform:uppercase;color:var(--ink);background:var(--yellow);padding:8px 10px;border-radius:2px;white-space:nowrap}
+/* Появление при прокрутке. Скрытое состояние даёт только html.anim (скрипт ставит его при живом
+   IntersectionObserver и без reduced-motion), поэтому без JS всё видно сразу. Класс .in ставит IO один раз.
+   Двигаются дочерние элементы, сам блок с id не трогаем - прыжок по якорю остаётся точным. */
+html.anim .rv{transition:opacity .7s var(--eo),transform .7s var(--eo)}
+html.anim .rv:not(.in){opacity:0;transform:translateY(18px)}
+html.anim .rv-k>*:not(.checks),html.anim .rv-k .checks li{transition:opacity .7s var(--eo),transform .7s var(--eo)}
+html.anim .rv-k:not(.in)>*:not(.checks),html.anim .rv-k:not(.in) .checks li{opacity:0;transform:translateY(22px)}
+html.anim .rv-k>*:nth-child(2){transition-delay:.08s}html.anim .rv-k>*:nth-child(3){transition-delay:.16s}html.anim .rv-k>*:nth-child(4){transition-delay:.24s}html.anim .rv-k>*:nth-child(5){transition-delay:.32s}html.anim .rv-k>*:nth-child(6){transition-delay:.56s}
+html.anim .rv-k .checks li:nth-child(1){transition-delay:.3s}html.anim .rv-k .checks li:nth-child(2){transition-delay:.36s}html.anim .rv-k .checks li:nth-child(3){transition-delay:.42s}html.anim .rv-k .checks li:nth-child(4){transition-delay:.48s}
+html.anim .step-grid .step:nth-child(2){transition-delay:.1s}html.anim .step-grid .step:nth-child(3){transition-delay:.2s}
+html.anim .price-grid .pg:nth-child(even){transition-delay:.12s}
+html.anim .kont-grid .form{transition-delay:.15s}
+/* Фото: жёлтая полоса прочерчивается вниз по срезу, затем кадр раскрывается от неё по форме косого среза */
+html.anim .ph::before{transition:clip-path .8s var(--eo)}
+html.anim .ph-in{transition:clip-path 1s var(--eio) .1s}
+html.anim .ph:not(.in)::before{clip-path:polygon(0 0,2.3% 0,2.3% 0,0 0)}
+html.anim .ph:not(.in) .ph-in{clip-path:polygon(2.3% 0,3.3% 0,16.3% 100%,15.3% 100%)}
+html.anim .rtl .ph:not(.in)::before{clip-path:polygon(97.7% 0,100% 0,100% 0,97.7% 0)}
+html.anim .rtl .ph:not(.in) .ph-in{clip-path:polygon(96.7% 0,97.7% 0,84.7% 100%,83.7% 100%)}
+.ph.in .ph-in img{animation:k-ph 1.4s var(--eo) backwards}
+@keyframes k-ph{from{transform:scale(1.1)}to{transform:none}}
 
 /* Герой */
 .hero{display:flex;flex-direction:column}
@@ -115,9 +124,6 @@ body.menu-open .burger span:nth-child(3){top:21px;transform:rotate(-45deg)}
 .hero-bg picture{display:block;width:100%;height:100%;transform:scale(calc(1 + .08*var(--stay)));transform-origin:62% 60%}
 .hero-bg img{width:100%;height:100%;object-fit:cover;object-position:50% 50%}
 .hero-bg::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(21,24,28,.94) 0,rgba(21,24,28,.8) 34%,rgba(21,24,28,.3) 62%,rgba(21,24,28,.08) 100%),linear-gradient(180deg,rgba(21,24,28,.55) 0,rgba(21,24,28,0) 28%,rgba(21,24,28,0) 70%,rgba(21,24,28,.75) 100%)}
-.hero-bg .mark{z-index:2;transform:scale(calc(1 + .08*var(--stay)));transform-origin:62% 60%}
-.mark-m{display:none}
-.tag-hero{--tx:80%;--ty:68%;z-index:3}
 .why h2 em{white-space:nowrap}
 .hero-in{position:relative;z-index:2;flex:1;display:flex;align-items:center;width:100%;max-width:var(--wrap);margin:0 auto;padding:calc(var(--hh) + 24px) var(--gut) 100px}
 .hero .txt{width:100%}
@@ -127,10 +133,20 @@ h1 .fit{display:block;white-space:nowrap}
 .hero .lead{max-width:840px;color:rgba(233,237,241,.86);font-size:18px}
 .lead-short{display:none}
 .hero .btns .btn{min-width:240px}
-html.ready .hero .txt>*{opacity:1;transform:none}
-.hero .txt>*{opacity:0;transform:translateY(26px);transition:opacity .9s cubic-bezier(.2,.7,.2,1),transform .9s cubic-bezier(.2,.7,.2,1)}
-.hero .txt>*:nth-child(1){transition-delay:.1s}.hero .txt>*:nth-child(2){transition-delay:.2s}.hero .txt>*:nth-child(3){transition-delay:.32s}.hero .txt>*:nth-child(4){transition-delay:.44s}
-html.no-intro .hero .txt>*{transition:none}
+/* Открытие главного экрана - только с html.intro (первый визит без якоря и без reduced-motion).
+   Фото проявляется 1.5 с с масштабом 1.06 -> 1, затем каскад: кикер, две строки заголовка, лид, кнопки, лента. */
+@keyframes k-up{from{opacity:0;transform:translateY(26px)}to{opacity:1;transform:none}}
+@keyframes k-fade{from{opacity:0}to{opacity:1}}
+@keyframes k-bg{from{opacity:0;transform:scale(1.06)}to{opacity:1;transform:none}}
+html.intro .hdr{animation:k-fade .7s var(--eo) .15s both}
+html.intro .hero-bg img{animation:k-bg 1.5s var(--eo) both}
+html.intro .hero .kicker,html.intro h1 .fit,html.intro .hero .lead,html.intro .hero .btns{animation:k-up .85s var(--eo) both}
+html.intro .hero .kicker{animation-delay:.2s}
+html.intro h1 .fit:nth-child(1){animation-delay:.3s}
+html.intro h1 .fit:nth-child(2){animation-delay:.4s}
+html.intro .hero .lead{animation-delay:.52s}
+html.intro .hero .btns{animation-delay:.64s}
+html.intro .mq{animation:k-fade .8s var(--eo) .9s both}
 .mq{position:absolute;left:0;right:0;bottom:0;z-index:3;height:52px;border-top:1px solid rgba(255,255,255,.14);background:rgba(15,17,20,.6);overflow:hidden;display:flex;align-items:center}
 .mq-track{display:flex;width:max-content;animation:mq var(--tkd,40s) linear infinite}
 .mq-track b{flex:0 0 auto;display:flex;align-items:center;gap:22px;padding-right:22px;font:500 12px/1 var(--ft);letter-spacing:.14em;text-transform:uppercase;color:rgba(233,237,241,.82);white-space:nowrap}
@@ -144,8 +160,6 @@ html.no-intro .hero .txt>*{transition:none}
 .light h2 em{color:var(--ink);background:var(--yellow);padding:0 .12em;-webkit-box-decoration-break:clone;box-decoration-break:clone}
 .light .lead{color:#4A5159}
 .light::after{content:"";position:absolute;right:-90px;top:-110px;width:320px;height:320px;border:2px dashed rgba(21,24,28,.16);border-radius:50%;pointer-events:none}
-.rv{opacity:0;transform:translateY(18px);transition:opacity .75s cubic-bezier(.2,.7,.2,1),transform .75s cubic-bezier(.2,.7,.2,1)}
-.rv.in{opacity:1;transform:none}
 
 /* Три шага */
 .steps{background:var(--ink)}
@@ -178,17 +192,8 @@ html.no-intro .hero .txt>*{transition:none}
 .ph-v .ph-in{aspect-ratio:4/5}
 .ph-in img{width:100%;height:100%;object-fit:cover;transition:transform .6s cubic-bezier(.2,.7,.2,1)}
 @media (hover:hover) and (pointer:fine){.ph:hover img{transform:scale(1.03)}}
-.ph .tag{--tx:50%;--ty:50%}
 .why{background:var(--ink)}
 .why .ph{margin-top:0}
-
-/* Заглушка «Фото объекта» */
-.holder{background:var(--ink2);display:grid;place-items:end start;padding:28px}
-.holder-art{position:absolute;inset:0;width:100%;height:100%}
-.holder-chalk path{stroke:var(--yellow);stroke-width:2.2;stroke-dasharray:9 7;stroke-linecap:round;stroke-linejoin:round;opacity:.75;fill:none}
-.holder-cap{position:relative;font:500 13px/1.5 var(--ft);letter-spacing:.08em;text-transform:uppercase;color:var(--steel)}
-.holder-cap b{color:var(--chrome);font-weight:500}
-.has-img .holder-art,.has-img .holder-cap{display:none}
 
 /* Цены */
 .price-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:44px 64px}
@@ -239,7 +244,6 @@ html.no-intro .hero .txt>*{transition:none}
   .pw:not(.pw-hero){height:auto}
   .pw:not(.pw-hero) .plate{position:relative;height:auto;min-height:100svh;transform:none;border-radius:0}
   .pw:not(.pw-hero) .plate::after{display:none}
-  .pw:not(.pw-hero){--draw:clamp(0,(var(--enter) - .3)/.38,1);--wipe:clamp(0,(var(--enter) - .72)/.16,1)}
   .pw-hero{height:120svh}
 }
 @media (min-width:761px) and (max-width:1100px){
@@ -260,15 +264,12 @@ html.no-intro .hero .txt>*{transition:none}
   .btns .btn{width:100%}
   .btn{padding:0 20px}
   .pw,.pw-hero{height:auto}
-  .pw:not(.pw-hero){--draw:clamp(0,(var(--enter) - .3)/.38,1);--wipe:clamp(0,(var(--enter) - .72)/.16,1)}
   .plate{position:relative;height:auto;transform:none;border-radius:0}
   .plate::after{display:none}
   .plate.hero{min-height:100svh;justify-content:flex-start}
-  .hero-bg picture,.hero-bg .mark{height:118%;transform:none}
+  .hero-bg picture{height:118%;transform:none}
   .hero-bg img{object-position:50% 0}
   .hero-bg::after{background:linear-gradient(180deg,rgba(21,24,28,.92) 0,rgba(21,24,28,.78) 32%,rgba(21,24,28,.28) 60%,rgba(21,24,28,.12) 80%,rgba(21,24,28,.7) 100%)}
-  .mark-d{display:none}.mark-m{display:block}
-  .tag-hero{--tx:30%;--ty:78%;z-index:1}
   .hero-in{align-items:flex-start;padding:calc(var(--hh) + 26px) 20px 84px}
   h1{font-size:clamp(30px,9.4vw,42px);line-height:1.02}
   h1 .fit{white-space:normal;display:block}
@@ -285,8 +286,6 @@ html.no-intro .hero .txt>*{transition:none}
   .svc-grid .ph{order:1}
   .svc-grid .txt{order:2}
   .ph-v .ph-in{aspect-ratio:1/1}
-  .ph .tag b,.tag-hero b{font-size:10px;padding:7px 8px}
-  .plate .txt>*{opacity:1;transform:none;transition:none}
   .price-grid{grid-template-columns:minmax(0,1fr);gap:30px}
   .pg li{font-size:15px}
   .pg-cta{padding:26px 22px}
@@ -302,6 +301,8 @@ html.no-intro .hero .txt>*{transition:none}
   .bar a{display:flex;align-items:center;justify-content:center;gap:8px;height:var(--barh);font:500 14px/1 var(--ft);text-decoration:none;color:var(--chrome)}
   .bar a svg{flex:0 0 auto}
   .bar a+a{background:var(--yellow);color:var(--ink)}
+  .bar a{transition:transform .16s var(--eo)}
+  .bar a:active{transform:scale(.97)}
 }
 @media (max-width:400px){
   h1{font-size:clamp(30px,9.6vw,40px)}
@@ -312,10 +313,8 @@ html.no-intro .hero .txt>*{transition:none}
 html.no-plate .pw,html.no-plate .pw-hero{height:auto}
 html.no-plate .plate{position:relative;height:auto;min-height:100svh;transform:none;border-radius:0}
 html.no-plate .plate::after{display:none}
-html.no-plate .mark,html.no-plate .tag{display:none}
-html.no-plate .rv,html.no-plate .plate .txt>*,html.no-plate .hero .txt>*{opacity:1;transform:none;transition:none}
 html.no-plate .mq-track{animation:none}
 html.no-plate .hero-bg picture{transform:none}
 @media (prefers-reduced-motion:reduce){
-  *{transition-duration:.01ms!important;animation-duration:.01ms!important}
+  *{transition-duration:.01ms!important;animation-duration:.01ms!important;animation-delay:0s!important;transition-delay:0s!important}
 }

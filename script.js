@@ -149,28 +149,16 @@ if (document.fonts && document.fonts.ready) document.fonts.ready.then(fitAll);
 var lastW = innerWidth;
 addEventListener("resize", function(){ if (innerWidth === lastW) return; lastW = innerWidth; fitAll(); stripsState(); });
 
-/* Плиты */
+/* Плиты: прогресс в --enter/--exit/--stay, размеры читаются одним пакетом, вне экрана не считаем */
 function clamp(v){ return v < 0 ? 0 : (v > 1 ? 1 : v); }
-function easeInOut(t){ return t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2; }
 var heroPw = document.getElementById("top");
 var pws = [].slice.call(document.querySelectorAll(".pw"));
 var bar = document.getElementById("bar");
 var kont = document.getElementById("kontakty");
 var last = new Map();
-var introT = -1, introDone = false, introStart = null;
 function setVar(pw, k, v){
   var m = last.get(pw); if (!m) { m = {}; last.set(pw, m); }
   if (m[k] !== v) { m[k] = v; pw.style.setProperty(k, v); }
-}
-/* Обводка героя: 0.35-1.7 с рисуется, 1.5 с бирка, 3.2-4.3 с стирается; скролл стирает раньше */
-function heroMark(stay){
-  var t = introT < 0 ? 99 : introT;
-  var draw = easeInOut(clamp((t - .35) / 1.35));
-  var wipe = easeInOut(clamp((t - 3.2) / 1.1));
-  wipe = Math.max(wipe, clamp(stay / .3));
-  if (stay > .02) draw = 1;
-  setVar(heroPw, "--hd", draw.toFixed(3));
-  setVar(heroPw, "--hw", wipe.toFixed(3));
 }
 function update(){
   var H = innerHeight || root.clientHeight;
@@ -186,15 +174,12 @@ function update(){
     setVar(pw, "--exit",  exit.toFixed(3));
     setVar(pw, "--stay",  stay.toFixed(3));
     pw.classList.toggle("gone", exit >= 1);
-    pw.classList.toggle("on", enter > 0.62);
-    if (pw === heroPw) heroMark(stay);
   });
   hdrState();
   if (bar) bar.classList.toggle("show", scrollY > H * 0.55 && !onKont);
 }
 if (RED) {
-  root.classList.add("no-plate", "ready", "no-intro");
-  pws.forEach(function(pw){ pw.classList.add("on"); });
+  root.classList.add("no-plate");
   addEventListener("scroll", function(){ hdrState(); if (bar) bar.classList.toggle("show", scrollY > innerHeight * 0.55 && !(kont && kont.getBoundingClientRect().top < innerHeight * .6)); }, {passive:true});
   hdrState();
 } else {
@@ -205,23 +190,9 @@ if (RED) {
   }, {passive:true});
   addEventListener("resize", update);
   addEventListener("load", update);
-  var skip = !!location.hash || scrollY > 80;
-  if (skip) {
-    introT = 99; introDone = true;
-    root.classList.add("no-intro", "ready");
-    update();
-  } else {
-    introT = 0; update();
-    requestAnimationFrame(function(){ root.classList.add("ready"); });
-    var step = function(ts){
-      if (introDone) return;
-      if (introStart === null) introStart = ts;
-      introT = (ts - introStart) / 1000;
-      update();
-      if (introT < 4.6) requestAnimationFrame(step); else { introDone = true; introT = 99; update(); }
-    };
-    requestAnimationFrame(function(){ requestAnimationFrame(step); });
-  }
+  /* Открытие главного экрана (CSS-анимации по html.intro) - только при заходе на верх страницы без якоря */
+  if (!location.hash && scrollY <= 80) root.classList.add("intro");
+  update();
 }
 addEventListener("hashchange", function(){
   var id = location.hash.slice(1); if (!id || !document.getElementById(id)) return;
@@ -229,17 +200,18 @@ addEventListener("hashchange", function(){
   setTimeout(function(){ goTo(id, false); }, 420);
 });
 
-/* Проявление обычных секций */
+/* Появление при прокрутке: html.anim включает скрытое состояние в CSS, IO один раз ставит .in.
+   Без IO или при reduced-motion класс не ставится - всё видно сразу. */
 if (HAS_IO && !RED) {
+  root.classList.add("anim");
+  var RV = ".rv,.rv-k,.ph";
   var io = new IntersectionObserver(function(es){
     es.forEach(function(e){ if (e.isIntersecting){ e.target.classList.add("in"); io.unobserve(e.target); } });
-  }, {threshold:.08, rootMargin:"0px 0px -5% 0px"});
-  document.querySelectorAll(".rv").forEach(function(el){ io.observe(el); });
-  setTimeout(function(){ document.querySelectorAll(".rv:not(.in)").forEach(function(el){
-    if (el.getBoundingClientRect().top < innerHeight) el.classList.add("in");
+  }, {threshold:.3, rootMargin:"0px 0px -18% 0px"});
+  document.querySelectorAll(RV).forEach(function(el){ io.observe(el); });
+  setTimeout(function(){ document.querySelectorAll(RV).forEach(function(el){
+    if (!el.classList.contains("in") && el.getBoundingClientRect().top < innerHeight) el.classList.add("in");
   }); }, 1500);
-} else {
-  document.querySelectorAll(".rv").forEach(function(el){ el.classList.add("in"); });
 }
 
 /* Ленты со стрелками (задел под галерею работ) */
