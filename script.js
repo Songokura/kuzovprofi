@@ -204,7 +204,7 @@ addEventListener("hashchange", function(){
    Без IO или при reduced-motion класс не ставится - всё видно сразу. */
 if (HAS_IO && !RED) {
   root.classList.add("anim");
-  var RV = ".rv,.rv-k,.ph";
+  var RV = ".rv,.rv-k,.ph,.deco";
   var io = new IntersectionObserver(function(es){
     es.forEach(function(e){ if (e.isIntersecting){ e.target.classList.add("in"); io.unobserve(e.target); } });
   }, {threshold:.3, rootMargin:"0px 0px -18% 0px"});

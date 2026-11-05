@@ -315,6 +315,22 @@ html.no-plate .plate{position:relative;height:auto;min-height:100svh;transform:n
 html.no-plate .plate::after{display:none}
 html.no-plate .mq-track{animation:none}
 html.no-plate .hero-bg picture{transform:none}
+/* Фоновые чертежи плит: под содержимым, поверх фото не рисуются */
+.svc::before{content:"";position:absolute;inset:0;pointer-events:none;background-image:linear-gradient(rgba(255,255,255,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.03) 1px,transparent 1px);background-size:48px 48px;-webkit-mask-image:radial-gradient(ellipse 75% 70% at 50% 75%,#000 25%,transparent 78%);mask-image:radial-gradient(ellipse 75% 70% at 50% 75%,#000 25%,transparent 78%)}
+.svc .wrap{position:relative;z-index:1}
+.deco{position:absolute;left:0;right:0;bottom:0;height:64%;z-index:0;pointer-events:none}
+.deco svg{display:block;width:100%;height:100%}
+.deco .l{stroke:rgba(179,186,194,.2);stroke-width:1.2;vector-effect:non-scaling-stroke}
+.deco .t{stroke:rgba(179,186,194,.12);stroke-width:1;vector-effect:non-scaling-stroke}
+.deco .a{stroke:rgba(245,184,0,.55);stroke-width:1.4;vector-effect:non-scaling-stroke}
+.deco .dots{fill:rgba(179,186,194,.16)}
+html.anim .deco :is(path,circle,ellipse):not([stroke-dasharray]){stroke-dasharray:1;stroke-dashoffset:1;transition:stroke-dashoffset 2.4s var(--eio)}
+html.anim .deco [stroke-dasharray],html.anim .deco .dots{opacity:0;transition:opacity 1.2s var(--eo) 1.2s}
+html.anim .deco.in :is(path,circle,ellipse):not([stroke-dasharray]){stroke-dashoffset:0}
+html.anim .deco.in [stroke-dasharray],html.anim .deco.in .dots{opacity:1}
+html.anim .deco.in .a{transition-delay:.5s}
+@media (max-width:760px){.deco{height:42%;opacity:.75}}
+
 @media (prefers-reduced-motion:reduce){
   *{transition-duration:.01ms!important;animation-duration:.01ms!important;animation-delay:0s!important;transition-delay:0s!important}
 }
