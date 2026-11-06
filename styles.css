@@ -334,3 +334,67 @@ html.anim .deco.in .a{transition-delay:.5s}
 @media (prefers-reduced-motion:reduce){
   *{transition-duration:.01ms!important;animation-duration:.01ms!important;animation-delay:0s!important;transition-delay:0s!important}
 }
+
+/* UI: полоса прочтения под шапкой */
+.prog{position:absolute;left:0;right:0;bottom:-1px;height:2px;pointer-events:none;z-index:46}
+.prog i{display:block;height:100%;background:var(--yellow);transform:scaleX(0);transform-origin:0 50%;will-change:transform}
+body.menu-open .prog{opacity:0}
+
+/* UI: текущий раздел в меню */
+.nav a{position:relative}
+.nav a::after{content:"";position:absolute;left:0;right:0;bottom:0;height:2px;background:var(--yellow);transform:scaleX(0);transform-origin:0 50%;transition:transform .35s var(--eo)}
+.nav a.is-cur{color:#fff}
+.nav a.is-cur::after{transform:scaleX(1)}
+
+/* UI: навигатор по услугам (десктоп, только в зоне плит услуг) */
+.rail{position:fixed;right:22px;top:50%;z-index:30;display:flex;flex-direction:column;gap:6px;transform:translate(16px,-50%);opacity:0;visibility:hidden;transition:opacity .35s,transform .45s var(--eo),visibility 0s .45s}
+.rail.show{opacity:1;visibility:visible;transform:translate(0,-50%);transition:opacity .35s,transform .45s var(--eo)}
+.rail a{position:relative;display:flex;align-items:center;justify-content:flex-end;width:28px;height:28px;text-decoration:none}
+.rail a::before{content:"";width:8px;height:8px;margin-right:10px;border-radius:50%;border:1.5px solid rgba(233,237,241,.55);transition:background .25s,border-color .25s,transform .3s var(--eo)}
+.rail a.is-cur::before{background:var(--yellow);border-color:var(--yellow);transform:scale(1.35)}
+.rail span{position:absolute;right:34px;white-space:nowrap;font:500 12px/1 var(--ft);letter-spacing:.08em;text-transform:uppercase;color:var(--chrome);background:var(--ink3);border:1px solid var(--line);border-radius:var(--r);padding:7px 10px;opacity:0;transform:translateX(6px);pointer-events:none;transition:opacity .2s,transform .25s var(--eo)}
+.rail a.is-cur span{color:var(--yellow)}
+.rail a:hover span,.rail a:focus-visible span{opacity:1;transform:none}
+.rail a:hover::before{border-color:var(--yellow)}
+@media (max-width:1339px){.rail{display:none}}
+
+/* UI: кнопка «Наверх» (десктоп; на телефоне есть липкая панель) */
+.totop{position:fixed;right:24px;bottom:24px;z-index:30;display:grid;place-items:center;width:48px;height:48px;border:1px solid rgba(255,255,255,.18);border-radius:50%;background:rgba(15,17,20,.92);color:var(--chrome);cursor:pointer;opacity:0;visibility:hidden;transform:translateY(12px);transition:opacity .3s,transform .35s var(--eo),visibility 0s .35s,border-color .2s,color .2s}
+.totop svg{transform:rotate(-90deg)}
+.totop.show{opacity:1;visibility:visible;transform:none;transition:opacity .3s,transform .35s var(--eo),border-color .2s,color .2s}
+.totop:active{transform:scale(.94)}
+@media (hover:hover) and (pointer:fine){.totop:hover{border-color:var(--yellow);color:var(--yellow)}}
+@media (max-width:760px){.totop{display:none}}
+
+/* UI: прайс - строка ведёт в WhatsApp с названием услуги */
+.pg li{display:block;padding:0}
+.pl{display:flex;align-items:baseline;gap:10px;padding:11px 10px;margin:0 -10px;border-radius:var(--r);color:inherit;text-decoration:none;transition:background .2s}
+.pl span{flex:0 1 auto;min-width:0}
+.pl i{flex:1 1 24px;min-width:24px;border-bottom:1px dotted #9AA1A8;transform:translateY(-5px)}
+.pl b{flex:0 0 auto;font-weight:500;color:var(--ink);white-space:nowrap}
+.pl-wa{flex:0 0 auto;align-self:center;width:16px;height:16px;color:#1FA855;opacity:.55;transition:opacity .2s,transform .25s var(--eo)}
+@media (hover:hover) and (pointer:fine){
+  .pl-wa{opacity:0;transform:translateX(-4px)}
+  .pl:hover{background:rgba(245,184,0,.14)}
+  .pl:hover .pl-wa{opacity:1;transform:none}
+}
+@media (hover:hover) and (pointer:fine) and (min-width:761px){
+  .pl{position:relative;padding-right:36px;margin-right:-36px}
+  .pl-wa{position:absolute;right:12px;top:50%;margin-top:-8px}
+}
+.pl:active{background:rgba(245,184,0,.22)}
+.pl:focus-visible{outline-offset:0}
+
+/* UI: форма - выбор услуги, ошибка поля */
+.f-svc{margin-bottom:16px}
+.f-lbl{display:block;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--steel2);margin-bottom:8px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chips button{display:inline-flex;align-items:center;gap:6px;min-height:38px;padding:8px 14px;border:1px solid var(--line);border-radius:999px;background:var(--ink3);color:var(--steel2);font-size:14px;line-height:1.2;cursor:pointer;transition:background .2s,border-color .2s,color .2s,transform .16s var(--eo)}
+.chips button::before{content:"";width:0;height:9px;border:solid var(--ink);border-width:0 2px 2px 0;transform:rotate(45deg) translate(-1px,-1px);opacity:0;transition:width .2s,opacity .2s}
+.chips button[aria-pressed="true"]{background:var(--yellow);border-color:var(--yellow);color:var(--ink);font-weight:500}
+.chips button[aria-pressed="true"]::before{width:5px;opacity:1;margin-right:2px}
+.chips button:active{transform:scale(.96)}
+@media (hover:hover) and (pointer:fine){.chips button:hover{border-color:rgba(245,184,0,.6);color:var(--chrome)}.chips button[aria-pressed="true"]:hover{color:var(--ink)}}
+.form input[aria-invalid="true"]{border-color:#E5484D}
+@media (max-width:760px){.chips button{font-size:13px;padding:8px 12px}}
+@media (prefers-reduced-motion:reduce){.prog i,.nav a::after,.rail,.rail a::before,.rail span,.totop,.pl,.pl-wa,.chips button{transition:none}}

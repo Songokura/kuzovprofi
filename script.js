@@ -22,7 +22,7 @@ var WA_T = {
   shumka:   "Здравствуйте! Интересует шумоизоляция. Автомобиль: [марка, модель, год]. Какой объём работ посоветуете?",
   price:    "Здравствуйте! Хочу уточнить стоимость услуги: [услуга]. Прикладываю фото."
 };
-var FORM_T = {hello:"Здравствуйте! Меня зовут", phone:"телефон", noname:"Здравствуйте! Мой телефон"};
+var FORM_T = {hello:"Здравствуйте! Меня зовут", phone:"телефон", noname:"Здравствуйте! Мой телефон", svc:"Услуга"};
 var RU_MQ = "Кузовной ремонт|Покраска|Удаление вмятин без покраски|Полимерное покрытие|Оптика|Шумоизоляция|Реставрация салона|Детейлинг и полировка";
 var I18N = {};
 var RU = {};
@@ -33,19 +33,23 @@ function waText(kind){
   if (curLang() === "kk" && window.SITE_KK && window.SITE_KK.__wa) T = window.SITE_KK.__wa;
   return T[kind] || T.hero || WA_T.hero;
 }
-function waUrl(kind){ return "https://wa.me/" + WA + "?text=" + encodeURIComponent(waText(kind)); }
+function waUrl(kind, a){
+  var t = waText(kind);
+  if (a && a.dataset.svc) { var sp = a.querySelector("[data-i]"); if (sp) t = t.replace(/\[[^\]]+\]/, sp.textContent.trim()); }
+  return "https://wa.me/" + WA + "?text=" + encodeURIComponent(t);
+}
 
 /* Контакты из констант - в разметку */
 function syncContacts(){
   document.querySelectorAll("a[data-tel]").forEach(function(a){ a.href = "tel:" + PHONE; });
   document.querySelectorAll("[data-phone]").forEach(function(el){ el.textContent = PHONE_TEXT; });
-  document.querySelectorAll("a[data-wa]").forEach(function(a){ a.href = waUrl(a.dataset.wa); });
+  document.querySelectorAll("a[data-wa]").forEach(function(a){ a.href = waUrl(a.dataset.wa, a); });
 }
 /* Текст WhatsApp подставляется в момент клика (язык), фаза захвата - совместимость с LeadBot */
 window.addEventListener("click", function(e){
   var a = e.target.closest ? e.target.closest("a[data-wa]") : null;
   if (!a) return;
-  a.href = waUrl(a.dataset.wa);
+  a.href = waUrl(a.dataset.wa, a);
 }, true);
 
 /* Языки */
@@ -75,6 +79,7 @@ function applyLang(lang){
   try { localStorage.setItem("kp-lang", lang); } catch(e){}
   buildMarquee(g("mq.list"));
   syncContacts();
+  if (typeof svcSync === "function") svcSync();
   fitAll();
 }
 function loadLang(lang, done){
@@ -149,6 +154,36 @@ if (document.fonts && document.fonts.ready) document.fonts.ready.then(fitAll);
 var lastW = innerWidth;
 addEventListener("resize", function(){ if (innerWidth === lastW) return; lastW = innerWidth; fitAll(); stripsState(); });
 
+
+/* UI: полоса прочтения, текущий раздел в меню, навигатор по услугам, кнопка «Наверх» */
+var progEl = document.getElementById("prog");
+var rail = document.getElementById("rail");
+var totop = document.getElementById("totop");
+var SVC = ["kuzovnoy","pokraska","pdr","polimer","optika","shumka"];
+var SPY = ["raschet"].concat(SVC, ["pochemu-my","uslugi","kontakty"]).map(function(id){ return document.getElementById(id); }).filter(Boolean);
+var navA = [].slice.call(document.querySelectorAll(".nav a[data-go]"));
+var railA = rail ? [].slice.call(rail.querySelectorAll("a")) : [];
+var curId = null;
+function uiState(){
+  var H = innerHeight || root.clientHeight;
+  var max = root.scrollHeight - H;
+  if (progEl) progEl.style.transform = "scaleX(" + (max > 0 ? Math.min(1, scrollY / max) : 0).toFixed(4) + ")";
+  var id = null, line = H * 0.4;
+  for (var i = 0; i < SPY.length; i++) { if (SPY[i].getBoundingClientRect().top <= line) id = SPY[i].id; }
+  if (id !== curId) {
+    curId = id;
+    var navId = SVC.indexOf(id) >= 0 ? "kuzovnoy" : id;
+    navA.forEach(function(a){ var on = a.dataset.go === navId; a.classList.toggle("is-cur", on); if (on) a.setAttribute("aria-current", "true"); else a.removeAttribute("aria-current"); });
+    railA.forEach(function(a){ var on = a.dataset.go === id; a.classList.toggle("is-cur", on); if (on) a.setAttribute("aria-current", "true"); else a.removeAttribute("aria-current"); });
+    if (rail) rail.classList.toggle("show", SVC.indexOf(id) >= 0);
+  }
+  if (totop) totop.classList.toggle("show", scrollY > H * 1.5);
+}
+if (totop) totop.addEventListener("click", function(){
+  scrollTo({top: 0, behavior: RED ? "auto" : "smooth"});
+  try { history.pushState(null, "", location.pathname + location.search); } catch(e){}
+});
+
 /* Плиты: прогресс в --enter/--exit/--stay, размеры читаются одним пакетом, вне экрана не считаем */
 function clamp(v){ return v < 0 ? 0 : (v > 1 ? 1 : v); }
 var heroPw = document.getElementById("top");
@@ -175,12 +210,13 @@ function update(){
     setVar(pw, "--stay",  stay.toFixed(3));
     pw.classList.toggle("gone", exit >= 1);
   });
-  hdrState();
+  hdrState(); uiState();
   if (bar) bar.classList.toggle("show", scrollY > H * 0.55 && !onKont);
 }
 if (RED) {
   root.classList.add("no-plate");
-  addEventListener("scroll", function(){ hdrState(); if (bar) bar.classList.toggle("show", scrollY > innerHeight * 0.55 && !(kont && kont.getBoundingClientRect().top < innerHeight * .6)); }, {passive:true});
+  addEventListener("resize", uiState); uiState();
+  addEventListener("scroll", function(){ hdrState(); uiState(); if (bar) bar.classList.toggle("show", scrollY > innerHeight * 0.55 && !(kont && kont.getBoundingClientRect().top < innerHeight * .6)); }, {passive:true});
   hdrState();
 } else {
   var tick = false;
@@ -243,17 +279,50 @@ addEventListener("load", stripsState);
 
 /* Форма -> WhatsApp */
 var form = document.getElementById("form");
+/* Форма: выбор услуги кнопками (значение в скрытом поле - его видит LeadBot), маска телефона */
+var chips = form ? [].slice.call(form.querySelectorAll(".chips button")) : [];
+function svcList(){
+  return chips.filter(function(b){ return b.getAttribute("aria-pressed") === "true"; }).map(function(b){ return b.textContent.trim(); }).join(", ");
+}
+function svcSync(){ if (form && form.service) form.service.value = svcList(); }
+chips.forEach(function(b){ b.addEventListener("click", function(){
+  b.setAttribute("aria-pressed", b.getAttribute("aria-pressed") === "true" ? "false" : "true"); svcSync();
+}); });
+function maskPhone(v){
+  var d = v.replace(/\D/g, "");
+  if (!d) return "";
+  if (d[0] === "8") d = "7" + d.slice(1);
+  if (d[0] !== "7") d = "7" + d;
+  d = d.slice(0, 11);
+  var o = "+7";
+  if (d.length > 1) o += " " + d.slice(1, 4);
+  if (d.length > 4) o += " " + d.slice(4, 7);
+  if (d.length > 7) o += " " + d.slice(7, 9);
+  if (d.length > 9) o += " " + d.slice(9, 11);
+  return o;
+}
+if (form && form.phone) {
+  form.phone.addEventListener("input", function(e){
+    if (e.inputType && e.inputType.indexOf("delete") === 0) return;
+    var el = form.phone, atEnd = el.selectionStart === el.value.length;
+    var m = maskPhone(el.value); if (m !== el.value && atEnd) el.value = m;
+    if (el.value.replace(/\D/g, "").length >= 11) { el.removeAttribute("aria-invalid"); document.getElementById("fmerr").hidden = true; }
+  });
+  form.phone.addEventListener("blur", function(){ var m = maskPhone(form.phone.value); if (m) form.phone.value = m; });
+}
+
 if (form) form.addEventListener("submit", function(e){
   e.preventDefault();
   var ok = document.getElementById("fmok"), err = document.getElementById("fmerr");
   if (form.company && form.company.value) return;
   var phone = form.phone.value.trim();
-  if (phone.replace(/\D/g, "").length < 10) { err.hidden = false; ok.hidden = true; form.phone.focus(); return; }
-  err.hidden = true;
+  if (phone.replace(/\D/g, "").length < 11) { err.hidden = false; ok.hidden = true; form.phone.setAttribute("aria-invalid", "true"); form.phone.focus(); return; }
+  err.hidden = true; form.phone.removeAttribute("aria-invalid");
   var F = FORM_T;
   if (curLang() === "kk" && window.SITE_KK && window.SITE_KK.__form) F = window.SITE_KK.__form;
   var name = form.name.value.trim(), msg = form.msg.value.trim();
-  var t = (name ? F.hello + " " + name + ", " + F.phone + " " + phone + "." : F.noname + " " + phone + ".") + (msg ? "\n" + msg : "");
+  var svc = svcList();
+  var t = (name ? F.hello + " " + name + ", " + F.phone + " " + phone + "." : F.noname + " " + phone + ".") + (svc ? "\n" + (F.svc || FORM_T.svc) + ": " + svc + "." : "") + (msg ? "\n" + msg : "");
   ok.hidden = false;
   window.open("https://wa.me/" + WA + "?text=" + encodeURIComponent(t), "_blank", "noopener");
 });
