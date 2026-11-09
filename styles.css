@@ -214,6 +214,8 @@ html.intro .mq{animation:k-fade .8s var(--eo) .9s both}
 .kont-row svg{flex:0 0 auto;color:var(--yellow)}
 .kont-row small{display:block;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--steel);margin-bottom:4px}
 .kont-row b{display:block;font:700 22px/1.2 var(--fd);color:#fff}
+.kont-note{display:block;margin-top:6px;font-style:normal;font-size:14px;color:var(--steel)}
+a.kont-row:hover .kont-note{color:var(--yellow)}
 .kont .btns{margin-top:28px}
 .form{background:var(--ink2);border:1px solid rgba(255,255,255,.05);border-radius:var(--r2);padding:32px}
 .form label{display:block;margin-bottom:16px}
