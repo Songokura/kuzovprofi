@@ -311,6 +311,18 @@ if (form && form.phone) {
   form.phone.addEventListener("blur", function(){ var m = maskPhone(form.phone.value); if (m) form.phone.value = m; });
 }
 
+/* Конверсии Google Ads */
+function fireConv(key){
+  if (typeof window.gtag_report_conversion !== "function" || !window.AW_CONV) return;
+  var sendTo = window.AW_CONV[key];
+  if (sendTo) window.gtag_report_conversion(undefined, sendTo);
+}
+document.addEventListener("click", function(e){
+  var a = e.target && e.target.closest ? e.target.closest('a[href^="tel:"], a[href*="wa.me"]') : null;
+  if (!a) return;
+  fireConv(a.getAttribute("href").indexOf("tel:") === 0 ? "phone" : "contact");
+});
+
 if (form) form.addEventListener("submit", function(e){
   e.preventDefault();
   var ok = document.getElementById("fmok"), err = document.getElementById("fmerr");
@@ -324,6 +336,7 @@ if (form) form.addEventListener("submit", function(e){
   var svc = svcList();
   var t = (name ? F.hello + " " + name + ", " + F.phone + " " + phone + "." : F.noname + " " + phone + ".") + (svc ? "\n" + (F.svc || FORM_T.svc) + ": " + svc + "." : "") + (msg ? "\n" + msg : "");
   ok.hidden = false;
+  fireConv("form");
   window.open("https://wa.me/" + WA + "?text=" + encodeURIComponent(t), "_blank", "noopener");
 });
 
