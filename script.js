@@ -1,9 +1,9 @@
 (function(){
 "use strict";
 /* Контакты - одно место на весь сайт. Поменять здесь и в атрибутах href index.html (tel:/wa.me), JSON-LD telephone. */
-var PHONE = "+77056400930";
-var PHONE_TEXT = "+7 705 640 09 30";
-var WA = "77056400930";
+var PHONE = "+77058086162";
+var PHONE_TEXT = "+7 705 808 61 62";
+var WA = "77058086162";
 
 var RED = matchMedia("(prefers-reduced-motion: reduce)").matches;
 var HAS_IO = typeof IntersectionObserver === "function";
